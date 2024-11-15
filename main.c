@@ -20,12 +20,15 @@ char most_likely_char(char** db, int size, char* already_contained){
         printf("Error: db is NULL\n");
         exit(-1);
     }
+
+    //loop zum zählen aller buchstaben
     char_count most_likely[] = {{'a', 0},{'b',0},{'c',0},{'d',0},{'e',0},{'f',0},{'g',0},{'h',0},{'i',0},{'j',0},{'k',0},{'l',0},{'m',0},{'n',0},{'o',0},{'p',0},{'q',0},{'r',0},{'s',0},{'t',0},{'u',0},{'v',0},{'w',0},{'x',0},{'y',0},{'z',0}};
     for(int i = 0; i < size; i++){
         if(db[i] == NULL){
             printf("Error: db[%i] is NULL\n", i);
             exit(-1);
         }
+
         for(int j = 0; j < strlen(db[i]); j++){
             for(int k = 0; k < 26; k++){
                 if(db[i][j] == most_likely[k].c){
@@ -34,25 +37,27 @@ char most_likely_char(char** db, int size, char* already_contained){
             }
         }
     }
-    int count_to_max = 0;
-    char max;
 
-    if(true){
-        for(int i = 0; i < 26; i++){
-            for(int j = 0; j < strlen(already_contained); j++){
-                if(most_likely[i].c == already_contained[j]){
-                    most_likely[i].count = 0;
-                }
+    char max;
+    int count_to_max = 0;
+
+    //sollte buchstabe bereits getestet worden sein nicht mehr vorschlagen
+    for(int i = 0; i < 26; i++){
+        for(int j = 0; j < strlen(already_contained); j++){
+            if(most_likely[i].c == already_contained[j]){
+                most_likely[i].count = 0;
             }
         }
     }
-
+    
+    //wahrscheinlichsten buchstaben ermitteln
     for(int i = 0; i < 26; i++){
         if(most_likely[i].count > count_to_max){
             count_to_max = most_likely[i].count;
             max = most_likely[i].c;
         }
     }
+
     return max;
 }
 
@@ -145,6 +150,7 @@ void ascii_art_hangman(int zug){
 }
 
 char** read_db(int* word_count, char *lng) {
+
     char filename[] = "./wortliste_aa.txt";
     filename[12] = lng[0];
     filename[13] = lng[1];
@@ -163,7 +169,7 @@ char** read_db(int* word_count, char *lng) {
     char *db = malloc((db_size_bytes + 1) * sizeof(char)); // +1 für Null-Terminierung
     if (db == NULL) {
         printf("Memory allocation failed\n");
-        exit(ENOMEM );
+        exit(ENOMEM);
     }
 
     fread(db, sizeof(char), db_size_bytes, file);
@@ -204,6 +210,7 @@ char** read_db(int* word_count, char *lng) {
     *word_count = line_count;
     return ptr_db_new;
 }
+
 int* check_containment(char c, const char* wort, int* return_length) {
     int len = strlen(wort);
     int* positions = (int*)malloc(len * sizeof(int));
@@ -317,7 +324,6 @@ void zeug_fuer_den_pc2(char **db1, char **db2, int length, char contain, int* co
         printf(" -> das wort ist: %s\n", db1[0]);
     }
 }
-
 
 void game_starter(char** db, int word_count, char* lng, bool assist) { 
     int zufallszahl = random_in_range(0, word_count - 1); // Dynamische Anpassung der Anzahl der Wörter
