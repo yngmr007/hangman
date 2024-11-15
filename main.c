@@ -355,9 +355,9 @@ void game_starter(char** db, int word_count, char* lng, bool assist) {
     }
 
     printf("\e[1;1H\e[2J");
-    printf("    ####    GAME START    ####\n");
-    printf("Zufaelliges Wort: %s, size: %i \n", zufallswort, strlen(zufallswort));
-    
+    printf("    ####    GAME START    ####\n\n");
+
+
     if (assist) zeug_fuer_den_pc(array1, array2, strlen(zufallswort)-1);
 
     while (zuege < max_zuege) {
