@@ -220,26 +220,34 @@ int* check_containment(char c, const char* wort, int* return_length) {
 }
 
 void zeug_fuer_den_pc(char **db1, char **db2, int length) {
+    // erste manipulation auf der db, deshalb wird getestet ob die db1/2 inhalte haben
     if (db1 == NULL || db2 == NULL) {
         printf("Error: db1 or db2 is NULL\n");
         exit(-1);
     }
+
     int line_count = 0;
     while (db1[line_count] != NULL) {
         line_count++;
     }
+
+    //testet, ob das wort die richtige länge hat und fügt ggf zu db2 hinzu
     int rest = 0;
     for (int i = 0; i < line_count; i++) {
-        if(strlen(db1[i]) == length+1){
+        if (strlen(db1[i]) == length + 1){
             db2[rest] = db1[i];
             rest++;
-        }else{
+        } else {
             db2[i] = NULL;
         }
     }
+
+    //setze db1 auf NULL zurück
     for(int i = 0; i < line_count; i++){
         db1[i] = NULL;
     }
+
+    //kopiere db2 in db1
     for (int i=0; i<rest; i++){
         db1[i] = db2[i];
     }
@@ -247,38 +255,46 @@ void zeug_fuer_den_pc(char **db1, char **db2, int length) {
 
 void zeug_fuer_den_pc2(char **db1, char **db2, int length, char contain, int* containat, int returnlength) {
     int stelle = 0;
-    bool warheitswert=false;
     int line_count = 0;
+    bool warheitswert = false;
 
     while (db1[line_count] != NULL) {
         line_count++;
     }
-    
+
+    //wenn returnlength 0, dann ist der getestete buchstabe (contain) NICHT vorhanden
     if (returnlength == 0) {
-        for(int i = 0; i < line_count; i++){
+        for (int i = 0; i < line_count; i++){
             warheitswert = true;
-            for(int j = 0; j < strlen(db1[i]); j++){
+
+             //testet, ob der buchsttabe im wort vorkommt für jedes wort in der db1
+            for (int j = 0; j < strlen(db1[i]); j++){
                 if(db1[i][j] == contain){
                     warheitswert = false; 
                 }
             }
-            if(warheitswert == true){
+             //nur falls der buchstabe nicht vorhanden ist in einem wort, wird es gespeichert
+            if (warheitswert == true){
                 db2[stelle] = db1[i];
                 stelle++;
             }
         }
-    }else{
-        for(int i = 0; i < line_count; i++){
+    } else {
+        for (int i = 0; i < line_count; i++){
             warheitswert = false;
-            for(int j = 0; j < returnlength; j++){
-                if(db1[i][containat[j]] == contain){
+
+            //testet falls der Buchstabe an der stelle vorkommt, an der er muss und an KEINER anderen
+            for (int j = 0; j < returnlength; j++){
+                if (db1[i][containat[j]] == contain){
                     warheitswert = true;
-                }else{
+                } else {
                     warheitswert = false;
                     break;
                 }
             }
-            if(warheitswert == true){
+
+            //nur wenn der buchstabe an der stelle(n) vorkommt, wird er gespeichert
+            if (warheitswert == true){
                 db2[stelle] = db1[i];
                 stelle++;
             }
@@ -286,12 +302,16 @@ void zeug_fuer_den_pc2(char **db1, char **db2, int length, char contain, int* co
         }
     }
 
+    //setze db1 auf NULL zurück (leeren aber nicht neu erstellen)
     for(int i = 0; i < length; i++){
         db1[i] = NULL;
     }
+
+    //kopiere alle werte von db2 in db1
     for (int i=0; i<stelle; i++){
         db1[i] = db2[i];
     }    
+
     printf("moegliche woerter: %i ", stelle);
     if(stelle == 1){
         printf(" -> das wort ist: %s\n", db1[0]);
@@ -299,9 +319,11 @@ void zeug_fuer_den_pc2(char **db1, char **db2, int length, char contain, int* co
 }
 
 
-void game_starter(char** db, int word_count, char* lng, bool assist) { // Mehrere Sprachen als Auswahl ermöglich
+void game_starter(char** db, int word_count, char* lng, bool assist) { 
     int zufallszahl = random_in_range(0, word_count - 1); // Dynamische Anpassung der Anzahl der Wörter
     char* zufallswort = db[zufallszahl];
+
+    //zwei weitere Arrays zum arbeiten, das das original-Array mit allen wörtern nie manipuliert wird
     char** array1 = (char**)malloc(word_count * sizeof(char*));
     char** array2 = (char**)malloc(word_count * sizeof(char*));
 
@@ -310,38 +332,43 @@ void game_starter(char** db, int word_count, char* lng, bool assist) { // Mehrer
         array2[i] = strdup(db[i]);
     }
 
-    bool gewonnen = false;
     int zuege = 0;
     int max_zuege = 9;
     int return_length = 0;
+
+    bool gewonnen = false;
+
+    char buchstabe_geraten;
     char falsche_buchstaben[10];
     char buchstabe_geraten_array[26];
-    char buchstabe_geraten;
-
+    
     char *leeres_wort = (char*)malloc(strlen(zufallswort) * sizeof(char));
 
     for(int i = 0; i < strlen(zufallswort); i++) {
         leeres_wort[i] = '_';
     }
+
     printf("\e[1;1H\e[2J");
     printf("    ####    GAME START    ####\n");
     printf("Zufaelliges Wort: %s, size: %i \n", zufallswort, strlen(zufallswort));
+    
     if (assist) zeug_fuer_den_pc(array1, array2, strlen(zufallswort)-1);
 
     while (zuege < max_zuege) {
-        if(gewonnen){
-            break;
-        }
+        //abbruchbedingung sollte das spiel VOR den maximalen zügen beenden, sollte gewonnen sein
+        if(gewonnen) break;
         
         char input[26];
 
         ascii_art_hangman(zuege);
 
+        //gibt die buchstaben aus in nutzerIface
         for(int i = 0; i < strlen(zufallswort); i++) {
             putchar(leeres_wort[i]);
             putchar(' ');
         }
         
+        //gibt die falsch eingegebenen buchstaben aus in rot und stellt die farbe wieder zurück auf std
         printf("\033[31m   ");
         for(int i = 0; i < zuege; i++) {
             putchar(falsche_buchstaben[i]);
@@ -356,15 +383,23 @@ void game_starter(char** db, int word_count, char* lng, bool assist) { // Mehrer
             line_count++;
         }
 
+        //nutzereingabe
         printf("dein buchstabe");
+
+        //gibt tipp aus, wenn dieser bei start aktiviert wurde
         if (assist) printf(" (tipp: %c)", most_likely_char(array1, line_count, leeres_wort));
+
         printf(": ");
+
+        //liest nutzereingabe
         fgets(input, 26, stdin);
         sscanf(input, "%s", &buchstabe_geraten_array);
 
+        //löscht terminal und zeichnet fenster wieder neu
         printf("\e[1;1H\e[2J");
         printf("    ####    GAME START    ####\n");
 
+        //testet, ob nutzer einen buchstaben oder ein wort eingetippt hat
         if (buchstabe_geraten_array[1] != 0) {
             if(strcmp(buchstabe_geraten_array, zufallswort) == 0) {
                 gewonnen = true;
@@ -448,7 +483,7 @@ int main(int argc, char *argv[]) {
                     i++;
                     sprache_wert = argv[i];
                 } else{
-                    sprache_wert = "de";
+                    sprache_wert = "de"; //default wert für die sprache, wenn keine sprache angegeben wird aber der command angegeben
                 }
             }
         } else if (strcmp(argv[i], "-hilfe") == 0) {
@@ -464,25 +499,25 @@ int main(int argc, char *argv[]) {
             printf("Unbekannter Parameter: %s\n", argv[i]);
         }
     }
-    if(sprache == 0) sprache_wert = "de"; 
-    if(hilfe){ help(); return 0;}
+    if(sprache == 0) sprache_wert = "de"; //setze sprache auf default wenn keine sprache angegeben wird
+    if(hilfe){ help(); return 0;} //comamnds , nachdenen der code beendet wird und das spiel nicht gestartet
     if(info){ info_fun(); return 0;}
 
-    srand(time(NULL)); 
+    srand(time(NULL)); //random time funktion initialisieren, noch nicht wirklich random
 
-    char* lng = sprache_wert;
     int word_count = 0;
-    
-    char** db_new = read_db(&word_count, lng);
+    char* lng = sprache_wert;
+        
+    char** db_new = read_db(&word_count, lng); 
 
     if (word_count > 0) {
-        game_starter(db_new, word_count, lng, assist);
+        game_starter(db_new, word_count, lng, assist); 
     } else {
         printf("\033[31mDie Wortliste ist leer!\033[0m\n");
     }
 
-    free(db_new[0]); // Freigeben des allokierten Speichers für db
-    free(db_new); // Freigeben des Zeiger-Arrays
+    free(db_new[0]); 
+    free(db_new); 
 
     return 0;
 }
